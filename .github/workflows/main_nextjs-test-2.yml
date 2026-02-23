@@ -69,6 +69,7 @@ jobs:
           # Use full path to next binary - required when deploying via GitHub Actions (ZipDeploy)
           # because symlinks in node_modules/.bin are broken in this deployment method.
           # See: https://azureossd.github.io/2022/10/18/NextJS-deployment-on-App-Service-Linux/
-          startup-command: 'node_modules/next/dist/bin/next start'
+          startup-command: 'node .next/standalone/server.js'
+
 
 
