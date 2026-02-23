@@ -25,7 +25,9 @@ jobs:
         run: |
           npm install
           npm run build --if-present
-
+          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/public
+          
       - name: Zip all files for deployment
         # IMPORTANT: .next is a hidden folder and must be explicitly included
         # IMPORTANT: node_modules must be included so Azure does NOT re-install at startup
@@ -68,4 +70,5 @@ jobs:
           # because symlinks in node_modules/.bin are broken in this deployment method.
           # See: https://azureossd.github.io/2022/10/18/NextJS-deployment-on-App-Service-Linux/
           startup-command: 'node_modules/next/dist/bin/next start'
+
 
