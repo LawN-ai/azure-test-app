@@ -34,6 +34,8 @@ jobs:
         with:
           name: node-app
           path: .
+          exclude: |
+            node_modules
 
   deploy:
     runs-on: ubuntu-latest
@@ -61,6 +63,7 @@ jobs:
           app-name: 'NextJs-test-2'
           slot-name: 'Production'
           package: .
-          startup-command: 'npm run start'
+          startup-command: 'npm install && npm run start'
 
           
+
