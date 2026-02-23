@@ -12,40 +12,40 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '24.x'
+          node-version: '20.x'
 
-      - name: npm install, build, and test
+      - name: npm install and build
         run: |
           npm install
           npm run build --if-present
-          npm run test --if-present
+
+      - name: Zip all files for deployment
+        # IMPORTANT: .next is a hidden folder and must be explicitly included
+        # IMPORTANT: node_modules must be included so Azure does NOT re-install at startup
+        run: zip next.zip ./* .next -qr
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            .next
-            public
-            package.json
-            package-lock.json
-            next.config.ts
+          path: next.zip
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -53,9 +53,6 @@ jobs:
         with:
           name: node-app
 
-      - name: Install production dependencies
-        run: npm install --omit=dev
-  
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -63,14 +60,14 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_56AF2DE8DC3D44A28985B925C21EB350 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2410A487CAAA47778728DD6B02B85AA6 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'NextJs-test-2'
           slot-name: 'Production'
-          package: .
-          startup-command: 'next start'
-
-          
-
-
+          package: next.zip
+          # Use full path to next binary - required when deploying via GitHub Actions (ZipDeploy)
+          # because symlinks in node_modules/.bin are broken in this deployment method.
+          # See: https://azureossd.github.io/2022/10/18/NextJS-deployment-on-App-Service-Linux/
+          startup-command: 'node_modules/next/dist/bin/next start'
