@@ -33,9 +33,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
-          exclude: |
-            node_modules
+          path: |
+            .next
+            public
+            package.json
+            package-lock.json
+            next.config.ts
 
   deploy:
     runs-on: ubuntu-latest
@@ -49,7 +52,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
+      - name: Install production dependencies
+        run: npm install --omit=dev
+  
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -63,7 +69,8 @@ jobs:
           app-name: 'NextJs-test-2'
           slot-name: 'Production'
           package: .
-          startup-command: 'npm install && npm run start'
+          startup-command: 'next start'
 
           
+
 
