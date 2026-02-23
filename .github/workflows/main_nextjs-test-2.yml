@@ -56,10 +56,11 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2410A487CAAA47778728DD6B02B85AA6 }}
 
       - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'NextJs-test-2'
           slot-name: 'Production'
           package: .
+          startup-command: 'npm run start'
+
           
